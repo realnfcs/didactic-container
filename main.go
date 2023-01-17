@@ -1,28 +1,78 @@
+// Rootless Container by Liz Rice @lizrice
+// The purpose is run a container from a normal user
+// without root privileges,
+
 package main
 
 import (
+	"fmt"
 	"os"
-
-	"github.com/realnfcs/didactic-container/src/run"
+	"os/exec"
+	"syscall"
 )
 
-// This is a didactic project with learning propuse
-// Cretids for
-// 			Liz Rice 	@lizrice
-// 			Fabio Akita @akitaonrails
-
-// Project In Progress
-
-// docker 			run image 	<cmd> <params>
-// go run main.go 	run 		<cmd> <params>
+// go run main.go 	run 		<command> <args>
+// docker 			run <image> <command> <args>
 
 func main() {
 	switch os.Args[1] {
 	case "run":
-		run.Run()
+		run()
 	case "child":
-		run.Child()
+		child()
 	default:
-		panic("bad command")
+		panic("I'm confused")
+	}
+}
+
+func run() {
+	fmt.Printf("Running %v as user %d in process %d\n", os.Args[2:], os.Geteuid(), os.Getpid())
+
+	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWUSER | syscall.CLONE_NEWNS | syscall.CLONE_NEWPID,
+		UidMappings: []syscall.SysProcIDMap{
+			{
+				ContainerID: 0,
+				HostID:      1000,
+				Size:        1,
+			},
+		},
+
+		GidMappings: []syscall.SysProcIDMap{
+			{
+				ContainerID: 0,
+				HostID:      1000,
+				Size:        1,
+			},
+		},
+	}
+
+	must(cmd.Run())
+}
+
+func child() {
+	fmt.Printf("Running %v as user %d in process %d\n", os.Args[2:], os.Geteuid(), os.Getpid())
+
+	must(syscall.Chroot("./alpinefs"))
+	must(os.Chdir("/"))
+
+	must(syscall.Mount("proc", "proc", "proc", 0, ""))
+
+	cmd := exec.Command(os.Args[2], os.Args[3:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	must(cmd.Run())
+	must(syscall.Unmount("proc", 0))
+}
+
+func must(err error) {
+	if err != nil {
+		panic(err)
 	}
 }
