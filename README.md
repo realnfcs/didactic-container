@@ -19,8 +19,10 @@ Thanks for all knowledge you two have shared with us
 
 **[PT-BR]** ⚠️ `Em progresso`
 - [O que é um container?](#o-que-é-um-container)
-- [Cgroup](#cgroup)
-- [Namespaces](#namespaces)
+	- [Cgroup](#cgroup)
+	- [Namespaces](#namespaces)
+- [Project Organization](#project-organization)
+
 
 ### O que é um container?
 
@@ -48,3 +50,9 @@ da máquina, como CPU e RAM, e da Kernel, como pids (Process ID).
 Namespaces limita o que o contaiener consegue ver, como Process ID externos, processos da Rede, entre outros. Funcionam também como 
 uma forma de etiquetar processos que, quando criado e implementado em um container, cria um PID 1 onde seus "filhos" seguirão essa
 sequência.
+
+## Project Organization
+
+<div align="center">
+	<img src="https://github.com/realnfcs/didactic-container/blob/main/public/project_infrastructure.png" alt="project_organization" align="center">
+</div>
