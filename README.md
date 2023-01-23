@@ -22,6 +22,10 @@ Thanks for all knowledge you two have shared with us
 	- [Cgroup](#cgroup)
 	- [Namespaces](#namespaces)
 - [Project Organization](#project-organization)
+- [Image Engine](#image-engine)
+	- [Como vai funcionar?](#como-vai-funcionar)
+	- [Por que o SQLite?](#por-que-o-sqlite)
+	- [TODO](#todo)
 
 
 ### O que é um container?
@@ -56,3 +60,51 @@ sequência.
 <div align="center">
 	<img src="https://github.com/realnfcs/didactic-container/blob/main/public/project_infrastructure.png" alt="project_organization" align="center">
 </div>
+
+## Image Engine
+
+	go run main.go image <cmd> <params>
+
+Na image Engine, teremos a CLI que ficará responsável pela instalação, configuração e gerenciamento das imagens/filesystems que serão usados para criar um container.
+
+### Como vai funcionar?
+
+Tendo o exemplo com o filesystem do Alpine. O usuário terá que digitar o comando ` go run main.go image create `  para iniciar a criação e gerenciamento das imagens.
+
+Ao digitar o comando, algo similar terá que aparecer:
+
+
+	$ go run main.go image create
+	
+	$ Com qual das imagens abaixo você que criar seu container?
+	
+	$ > Ubuntu
+	
+	$ > Alpine
+	
+	$ > Personalizado
+
+
+**Se ele escolher o personalizado, apenas terá que informar o 
+local onde o filesystem está localizado.**
+
+Escolhendo o nosso exemplo usando o Alpine, o CLI terá que: 
+
+1. Primeiramente verificar se já não está instalado.
+2. Se não estiver, instalar o filesystem.
+3. Guardar em um local apropriado
+
+**Esse será o próposito desta parte -> Instalar a image a ser utilizada!**
+
+Para fins de facilidade, a Image Engine também terá um comando `info` para observar as imagens instaladas e personalizadas.
+
+### Por que o SQLite?
+
+Para melhor gerenciamento, usarei o SQLite para guardar informações das imagens e de outros futuros dados, então, para adiantar, já o deixarei configurado.
+
+## TODO
+
+- [ ] Preparar o ambiente para criar a Image Engine
+- [ ] Criar a conexão SQLite
+- [ ] Criar as funcionalidades para instalar e configurar as Imagens/Filesystems a serem usadas
+- [ ] Criar a funcionalidade para ver as imagens instaladas
