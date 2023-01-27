@@ -38,6 +38,7 @@ func CreateTable() {
 	createTableSQL := `
 		CREATE TABLE IF NOT EXISTS image (
 			"id" TEXT NOT NULL PRIMARY KEY,
+			"name" TEXT NOT NULL,
 			"filename" TEXT NOT NULL,
 			"path" TEXT NOT NULL
 		)
@@ -52,7 +53,7 @@ func CreateTable() {
 	log.Println("Image table was created!")
 }
 
-func InsertImage(filename, path string) {
+func InsertImage(name, filename, path string) {
 	insertImageSQL := `
 		INSERT INTO image (id, filename, path)
 		VALUES (?, ?, ?)
@@ -66,7 +67,7 @@ func InsertImage(filename, path string) {
 	id := uuid.New().String()
 	id = strings.Replace(id, "-", "", -1)
 
-	_, err = statement.Exec(id, filename, path)
+	_, err = statement.Exec(id, name, filename, path)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -81,9 +82,6 @@ func InfoImages() {
 	}
 
 	defer row.Close()
-
-	// images := []Image{}
-	// var index uint = 0
 
 	var (
 		id       string

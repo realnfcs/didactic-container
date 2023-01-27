@@ -3,6 +3,7 @@ package image // For test, we will download the alpine image filesystem from htt
 import (
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -13,13 +14,15 @@ import (
 
 type Filesystem struct {
 	URL      string
-	fileName string
+	Name     string
+	FileName string
 }
 
 func AlpineImage() {
 	fs := &Filesystem{
 		URL:      "https://dl-cdn.alpinelinux.org/alpine/v3.17/releases/x86_64/alpine-minirootfs-3.17.1-x86_64.tar.gz",
-		fileName: "alpine-fs.tar.gz",
+		Name:     "Alpine",
+		FileName: "alpine-fs.tar.gz",
 	}
 
 	if err := fs.PullImage(); err != nil {
@@ -28,6 +31,19 @@ func AlpineImage() {
 
 }
 
+func UbuntuImage() {
+	fs := &Filesystem{
+		URL:      "https://cloud-images.ubuntu.com/minimal/releases/jammy/release/ubuntu-22.04-minimal-cloudimg-amd64-root.tar.xz",
+		Name:     "Ubuntu",
+		FileName: "ubuntu-fs.tar.xz",
+	}
+
+	if err := fs.PullImage(); err != nil {
+		log.Println(err)
+	}
+}
+
+// Function to download a image with the URL informed
 func (fs *Filesystem) PullImage() error {
 
 	response, err := http.Get(fs.URL)
@@ -42,7 +58,7 @@ func (fs *Filesystem) PullImage() error {
 		return errors.New("Error in pull image request")
 	}
 
-	path := filepath.Join(internal.FS_FOLDER_PATH, fs.fileName)
+	path := filepath.Join(internal.FS_FOLDER_PATH, fs.FileName)
 
 	file, err := os.Create(path)
 
@@ -58,7 +74,7 @@ func (fs *Filesystem) PullImage() error {
 		return err
 	}
 
-	database.InsertImage(fs.fileName, path)
+	database.InsertImage(fs.Name, fs.FileName, path)
 
 	return nil
 
