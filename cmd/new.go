@@ -1,17 +1,22 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"log"
-	"os"
 
-	"github.com/manifoldco/promptui"
 	"github.com/realnfcs/didactic-container/internal/image"
 	"github.com/spf13/cobra"
 )
 
+var (
+    local string
+    url string
+    imgName string
+    filename string
+)
+
 // newCmd represents the new command
+// TODO: test if the modification will work correctly
 var newCmd = &cobra.Command{
 	Use:   "new",
 	Short: "new command will download a image and insert in the database",
@@ -19,97 +24,77 @@ var newCmd = &cobra.Command{
 the database.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		newImage()
+
+        if len(args) > 0 {
+            fmt.Println("Checking args...")
+            err := cmd.ValidateArgs(args)
+            if err != nil {
+                log.Fatalln(err)
+            }
+
+            for _, v := range args {
+                switch v {
+                case "ubuntu":
+                    image.UbuntuImage()
+                case "alpine":
+                    image.AlpineImage()
+                }
+            }
+
+            return
+        }
+
+
+        if url != "" {
+            if filename == "" || imgName == "" {
+                cmd.Help()
+                log.Fatalln("error: you have the specified the filename and the image name")    
+            }
+           
+            fs := image.Filesystem{
+                URL: url,
+                FileName: filename,
+                Name: imgName,
+            }
+
+            err := fs.PullImage()
+            if err != nil {
+                log.Fatalln(err)
+            }
+
+            return
+        }
+
+        if local != "" {
+            if filename == "" || imgName == "" {
+                cmd.Help()
+                log.Fatalln("error: you have the specified the filename and the image name")    
+            }
+   
+            fs := image.Filesystem{
+                URL: local,
+                FileName: filename,
+                Name: imgName,
+            }
+
+            err := fs.PullLocalImage()
+            if err != nil {
+                log.Fatalln(err)
+            }
+
+            return
+        }
 	},
 }
 
-type promptContent struct {
-	errorMsg string
-	label    string
-}
-
 func init() {
+   
+    newCmd.ValidArgs = []string{"ubuntu", "alpine"}
+    
+    newCmd.PersistentFlags().StringVarP(&url, "url", "u", "", "Indicate the image/filesystem url for download")
+    newCmd.PersistentFlags().StringVarP(&local, "local", "l", "", "Indicate the custom image/filesystem local path")
+    newCmd.PersistentFlags().StringVarP(&filename, "filename", "f", "", "Indicate the filename of the image")
+    newCmd.PersistentFlags().StringVarP(&imgName, "name", "n", "", "Indicate the name of the image")
+
 	imageCmd.AddCommand(newCmd)
-}
-
-// Funtion to get input from user
-func promptGetInput(pc promptContent) string {
-	validate := func(input string) error {
-		if len(input) <= 0 {
-			return errors.New(pc.errorMsg)
-		}
-
-		return nil
-	}
-
-	templates := &promptui.PromptTemplates{
-		Prompt:  "{{ . }}",
-		Valid:   "{{ . | green }}",
-		Invalid: "{{ . | red }}",
-		Success: "{{ . | bold }}",
-	}
-
-	prompt := promptui.Prompt{
-		Label:     pc.label,
-		Templates: templates,
-		Validate:  validate,
-	}
-
-	result, err := prompt.Run()
-	if err != nil {
-		log.Printf("Prompt failed %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("Input: %s\n", result)
-
-	return result
-}
-
-// Function to specified the prompt select UI
-func promptGetSelect(pc promptContent) (result string) {
-	items := []string{"Alpine", "Ubuntu", "Cancel"}
-	index := -1
-
-	var err error
-
-	for index < 0 {
-		prompt := promptui.Select{
-			Label: pc.label,
-			Items: items,
-		}
-
-		index, result, err = prompt.Run()
-	}
-
-	if err != nil {
-		log.Printf("Prompt failed %v\n", err)
-	}
-
-	return
-}
-
-// Function to download a image if them is not on workspace/fs
-func newImage() {
-	imagePromptContent := promptContent{
-		"Please select a filesystem",
-		"What of these filesystem you want?",
-	}
-
-	result := promptGetSelect(imagePromptContent)
-
-	switch result {
-
-	case "Ubuntu":
-		image.UbuntuImage()
-		break
-
-	case "Alpine":
-		image.AlpineImage()
-		break
-
-	default:
-		os.Exit(1)
-	}
-
 }

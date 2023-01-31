@@ -1,13 +1,14 @@
-package image // For test, we will download the alpine image filesystem from https://www.alpinelinux.org/
+package image
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-    "fmt"
+	"strings"
 
 	"github.com/realnfcs/didactic-container/internal"
 	"github.com/realnfcs/didactic-container/internal/database"
@@ -79,6 +80,37 @@ func (fs *Filesystem) PullImage() error {
 
 	return nil
 
+}
+
+func (fs *Filesystem) PullLocalImage() error {
+
+    if !strings.Contains(fs.FileName, ".tar.") || !strings.Contains(fs.URL, ".tar.") {
+        return errors.New("The file must be compressed in any .tar")
+    }
+
+    path := filepath.Join(internal.FS_FOLDER_PATH, fs.FileName)
+
+	file, err := os.Create(path)
+
+	defer file.Close()
+    
+    bytes, err := os.ReadFile(fs.URL)
+    if err != nil {
+        return err
+    }
+
+    err = os.WriteFile(path, bytes, 0755)
+    if err != nil {
+        return err
+    }
+
+	if err != nil {
+		return err
+	}
+
+	database.InsertImage(fs.Name, fs.FileName, fs.URL)
+
+	return nil
 }
 
 func DeleteImage(id, name, path string) {

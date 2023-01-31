@@ -146,7 +146,3 @@ func SearchPath(id, name string) (string, error) {
 
     return path, nil
 }
-
-
-
-
