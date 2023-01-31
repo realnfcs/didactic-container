@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+    "fmt"
 
 	"github.com/realnfcs/didactic-container/internal"
 	"github.com/realnfcs/didactic-container/internal/database"
@@ -78,4 +79,30 @@ func (fs *Filesystem) PullImage() error {
 
 	return nil
 
+}
+
+func DeleteImage(id, name, path string) {
+
+    var err error
+
+    if path == "" {
+        path, err = database.SearchPath(id, name)
+        if err != nil {
+            log.Fatalln(err)
+        }
+    }
+
+    err = database.DelImage(id, name, path)
+    if err != nil {
+        log.Fatalln(err)
+    }
+
+    fmt.Println("Image deleted from database")
+
+    err = os.Remove(path)
+    if err != nil {
+        log.Fatalln(err)
+    }
+
+    fmt.Println("Image deleted succesfully!")
 }
