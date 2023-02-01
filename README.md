@@ -2,9 +2,7 @@
 📚 📦 **Repository for learning how containers works in Go.** 
 ⚠️ `In progress`
 
-<img src="https://github.com/realnfcs/didactic-container/blob/main/public/dcont_image.png" alt="container_img" width=400em height=300em align="left" hspace="10" vspace="6">
 The objective of the project is to create an environment/infrastructure like a Docker to understand concepts and methods such as the creation of containers and their configuration, management and download of images, among others. This repository is learning purpose only, any contribution is welcome.
-
 
 ## Credits for:
 
@@ -21,11 +19,9 @@ Thanks for all knowledge you two have shared with us
 - [O que é um container?](#o-que-é-um-container)
 	- [Cgroup](#cgroup)
 	- [Namespaces](#namespaces)
-- [Project Organization](#project-organization)
 - [Image Engine](#image-engine)
-	- [Como vai funcionar?](#como-vai-funcionar)
-	- [Por que o SQLite?](#por-que-o-sqlite)
-	- [TODO](#todo)
+- [Por que o SQLite?](#por-que-o-sqlite)
+- [TODO](#todo)
 
 
 ### O que é um container?
@@ -51,60 +47,35 @@ da máquina, como CPU e RAM, e da Kernel, como pids (Process ID).
 
 ### Namespaces
 
-Namespaces limita o que o contaiener consegue ver, como Process ID externos, processos da Rede, entre outros. Funcionam também como 
+Namespaces limita o que o container consegue ver, como Process ID externos, processos da Rede, entre outros. Funcionam também como 
 uma forma de etiquetar processos que, quando criado e implementado em um container, cria um PID 1 onde seus "filhos" seguirão essa
 sequência.
 
-## Project Organization
-
-<div align="center">
-	<img src="https://github.com/realnfcs/didactic-container/blob/main/public/project_infrastructure.png" alt="project_organization" align="center">
-</div>
-
 ## Image Engine
-
-	go run main.go image <cmd> <params>
 
 Na image Engine, teremos a CLI que ficará responsável pela instalação, configuração e gerenciamento das imagens/filesystems que serão usados para criar um container.
 
-### Como vai funcionar?
+	./didactic-container image <cmd> <params>
 
-Tendo o exemplo com o filesystem do Alpine. O usuário terá que digitar o comando ` go run main.go image create `  para iniciar a criação e gerenciamento das imagens.
-
-Ao digitar o comando, algo similar terá que aparecer:
-
-
-	$ go run main.go image create
-	
-	$ Com qual das imagens abaixo você que criar seu container?
-	
-	$ > Ubuntu
-	
-	$ > Alpine
-	
-	$ > Personalizado
-
-
-**Se ele escolher o personalizado, apenas terá que informar o 
-local onde o filesystem está localizado.**
-
-Escolhendo o nosso exemplo usando o Alpine, o CLI terá que: 
-
-1. Primeiramente verificar se já não está instalado.
-2. Se não estiver, instalar o filesystem.
-3. Guardar em um local apropriado
-
-**Esse será o próposito desta parte -> Instalar a image a ser utilizada!**
-
-Para fins de facilidade, a Image Engine também terá um comando `info` para observar as imagens instaladas e personalizadas.
-
-### Por que o SQLite?
+	Usage:
+  		didactic-container image [flags]
+  		didactic-container image [command]
+  
+	Available Commands:
+  		del         del command will delete the specified image
+  		list        See list of all images you have download
+  		new         new command will download a image and insert in the database
+  
+	Flags:
+  		-h, --help   help for image
+  
+## Por que o SQLite?
 
 Para melhor gerenciamento, usarei o SQLite para guardar informações das imagens e de outros futuros dados, então, para adiantar, já o deixarei configurado.
 
 ## TODO
 
-- [ ] Preparar o ambiente para criar a Image Engine
-- [ ] Criar a conexão SQLite
-- [ ] Criar as funcionalidades para instalar e configurar as Imagens/Filesystems a serem usadas
-- [ ] Criar a funcionalidade para ver as imagens instaladas
+- [X] Preparar o ambiente para criar a Image Engine
+- [X] Criar a conexão SQLite
+- [X] Criar as funcionalidades para instalar e configurar as Imagens/Filesystems a serem usadas
+- [X] Criar a funcionalidade para ver as imagens instaladas
