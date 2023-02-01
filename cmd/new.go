@@ -16,7 +16,6 @@ var (
 )
 
 // newCmd represents the new command
-// TODO: test if the modification will work correctly
 var newCmd = &cobra.Command{
 	Use:   "new",
 	Short: "new command will download a image and insert in the database",
