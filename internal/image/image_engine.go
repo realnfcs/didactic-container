@@ -12,6 +12,7 @@ import (
 
 	"github.com/realnfcs/didactic-container/internal"
 	"github.com/realnfcs/didactic-container/internal/database"
+	"github.com/realnfcs/didactic-container/internal/models"
 )
 
 type Filesystem struct {
@@ -76,7 +77,13 @@ func (fs *Filesystem) PullImage() error {
 		return err
 	}
 
-	database.InsertImage(fs.Name, fs.FileName, path)
+    image := models.Image{
+        Name: fs.Name,
+        Filename: fs.FileName,
+        Path: path,
+    }
+
+	image.InsertImage()
 
 	return nil
 
@@ -108,7 +115,13 @@ func (fs *Filesystem) PullLocalImage() error {
 		return err
 	}
 
-	database.InsertImage(fs.Name, fs.FileName, fs.URL)
+    image := models.Image{
+        Name: fs.Name,
+        Filename: fs.FileName,
+        Path: path,
+    }
+
+	image.InsertImage()
 
 	return nil
 }
@@ -117,14 +130,20 @@ func DeleteImage(id, name, path string) {
 
     var err error
 
-    if path == "" {
-        path, err = database.SearchPath(id, name)
+    image := models.Image{
+        ID: id,
+        Name: name,
+        Path: path,
+    }
+
+    if image.Path == "" {
+        image.Path, err = image.SearchPath()
         if err != nil {
             log.Fatalln(err)
         }
     }
 
-    err = database.DelImage(id, name, path)
+    err = image.DelImage()
     if err != nil {
         log.Fatalln(err)
     }
