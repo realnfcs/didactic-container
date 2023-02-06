@@ -26,25 +26,42 @@ func NewSQLiteConnection() (err error) {
 
 func Query(sqlInstruction string, args ...any) (row *sql.Rows, err error) {
 
-	row, err = db.Query(sqlInstruction, args)
-    
-    return
+	if len(args) == 0 {
+		row, err = db.Query(sqlInstruction)
+		return
+	}
+
+	row, err = db.Query(sqlInstruction, args...)
+
+	return
+}
+
+func QueryRow(sqlInstruction string, args ...any) (row *sql.Row) {
+
+	if len(args) == 0 {
+		row = db.QueryRow(sqlInstruction)
+		return
+	}
+
+	row = db.QueryRow(sqlInstruction, args...)
+
+	return
 }
 
 func ExecStatement(sqlInstruction string, args ...any) (err error) {
 
-    var statement *sql.Stmt
+	var statement *sql.Stmt
 
 	statement, err = db.Prepare(sqlInstruction)
 	if err != nil {
 		return
 	}
 
-    _, err = statement.Exec(args...)	
+	_, err = statement.Exec(args...)
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    return 
+	return
 }

@@ -9,9 +9,9 @@ import (
 
 // Var who will storage the flags values of del command
 var (
-    id string
-    name string
-    path string
+	id   string
+	name string
+	path string
 )
 
 // delCmd represents the del command
@@ -22,20 +22,20 @@ var delCmd = &cobra.Command{
 or path of the image.
     `,
 	Run: func(cmd *cobra.Command, args []string) {
-        if id != "" || name != "" || path != "" {
-            image.DeleteImage(id, name, path)
-        } else {
-            fmt.Errorf("value error: you have to pass a value with flags\n")
-            cmd.Help()
-        }
+		if id != "" || name != "" {
+			image.DeleteImage(id, name, path)
+		} else {
+			fmt.Println("value error: you have to pass a value with flags")
+			cmd.Help()
+		}
 	},
 }
 
 func init() {
 
-    delCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "flag to specified the image with id")
-    delCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "flag to specified the image with name")
-    delCmd.PersistentFlags().StringVarP(&path, "path", "p", "", "flag to specified the image with path")
+	delCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "flag to specified the image with id")
+	delCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "flag to specified the image with name")
+	delCmd.PersistentFlags().StringVarP(&path, "path", "p", "", "flag to specified the image with path")
 
 	imageCmd.AddCommand(delCmd)
 }

@@ -14,7 +14,7 @@ type Image struct {
 	ID       string
 	Filename string
 	Path     string
-    Name     string
+	Name     string
 }
 
 func (i *Image) CreateImageTable() {
@@ -27,15 +27,13 @@ func (i *Image) CreateImageTable() {
 		)
 	`
 
-    err := database.ExecStatement(createTableSQL) 
-    if err != nil {
-        log.Fatalln(err)
-    }
+	err := database.ExecStatement(createTableSQL)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-    log.Println("Image table was created!")
+	log.Println("Image table was created!")
 }
-
-
 
 func (i *Image) InfoImages() {
 
@@ -48,43 +46,70 @@ func (i *Image) InfoImages() {
 
 	var (
 		id       string
-        name     string
+		name     string
 		filename string
 		path     string
 	)
 
 	for row.Next() {
-		row.Scan(&id, &name,  &filename, &path)
-        fmt.Printf("[%s] name: %s\tfilename: %s\tpath: %s\n", id, name, filename, path)
+		row.Scan(&id, &name, &filename, &path)
+		fmt.Printf("[%s] name: %s\tfilename: %s\tpath: %s\n", id, name, filename, path)
 	}
 }
 
 func (i *Image) SearchPath() (string, error) {
 
-    pathSearchQuerySQL := `
+	if i.ID != "" {
+		pathSearchWithIdQuerySQL := `
         SELECT path FROM image
-        WHERE image.id == ? 
-        OR image.name == ?
+        WHERE image.id = ? 
     `
 
-    row, err := database.Query(pathSearchQuerySQL, i.ID, i.Name) 
-    if err != nil {
-        return "", err
-    }
+		row := database.QueryRow(pathSearchWithIdQuerySQL, i.ID)
+		if row.Err() != nil {
+			return "", row.Err()
+		}
 
-    defer row.Close() 
+		var path string
 
-    var path string
+        err := row.Scan(&path)
+        if err != nil {
+            return "", err
+        }
 
-    for row.Next() {
-        row.Scan(&path)
-    }
-    
-    if path == "" {
-        return "", errors.New("error in scan")
-    }
+		if path == "" {
+			return "", errors.New("error in scan")
+		}
 
-    return path, nil
+		return path, nil
+
+	} else if i.Name != "" {
+		pathSearchWithNameQuerySQL := `
+        SELECT path FROM image
+        WHERE image.name = ? 
+    `
+
+		row := database.QueryRow(pathSearchWithNameQuerySQL, i.Name)
+		if row.Err() != nil {
+			return "", row.Err()
+		}
+
+		var path string
+
+        err := row.Scan(&path)
+        if err != nil {
+            return "", err
+        }
+
+		if path == "" {
+			return "", errors.New("error in scan")
+		}
+
+		return path, nil
+
+	}
+
+	return "", errors.New("invalid params: you must insert name or id of image")
 }
 
 func (i *Image) InsertImage() {
@@ -96,29 +121,41 @@ func (i *Image) InsertImage() {
 	id := uuid.New().String()
 	id = strings.Replace(id, "-", "", -1)
 
-    err := database.ExecStatement(insertImageSQL, id, i.Name, i.Filename, i.Path)
-    if err != nil {
-        log.Fatalln(err)
-    }
-    
+	err := database.ExecStatement(insertImageSQL, id, i.Name, i.Filename, i.Path)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	log.Println("Image has inserted successfully!")
 }
 
-func (i *Image)  DelImage() error {
-    deleleImageSQL := `
+func (i *Image) DelImageWithId() error {
+	deleleImageSQL := `
         DELETE FROM image
         WHERE  image.id = ? 
-            OR image.name = ?
-            OR image.path = ?
+    `
+
+	err := database.ExecStatement(deleleImageSQL, i.ID)
+	if err != nil {
+		return err
+	}
+
+	log.Println("Image has deleted successfully!")
+	return nil
+}
+
+func (i *Image) DelImageWithName() error {
+	deleleImageSQL := `
+        DELETE FROM image
+        WHERE  image.name = ? 
 
     `
 
-    err := database.ExecStatement(deleleImageSQL, i.ID, i.Name, i.Path)
-    if err != nil {
-        return err
-    }
+	err := database.ExecStatement(deleleImageSQL, i.Name)
+	if err != nil {
+		return err
+	}
 
-    log.Println("Image has deleted successfully!")
-    return nil
+	log.Println("Image has deleted successfully!")
+	return nil
 }
-
