@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/realnfcs/didactic-container/internal"
-	"github.com/realnfcs/didactic-container/internal/database"
+	"github.com/realnfcs/didactic-container/internal/models"
 )
 
 type Filesystem struct {
@@ -76,7 +76,13 @@ func (fs *Filesystem) PullImage() error {
 		return err
 	}
 
-	database.InsertImage(fs.Name, fs.FileName, path)
+	image := models.Image{
+		Name:     fs.Name,
+		Filename: fs.FileName,
+		Path:     path,
+	}
+
+	image.InsertImage()
 
 	return nil
 
@@ -84,57 +90,76 @@ func (fs *Filesystem) PullImage() error {
 
 func (fs *Filesystem) PullLocalImage() error {
 
-    if !strings.Contains(fs.FileName, ".tar.") || !strings.Contains(fs.URL, ".tar.") {
-        return errors.New("The file must be compressed in any .tar")
-    }
+	if !strings.Contains(fs.FileName, ".tar.") || !strings.Contains(fs.URL, ".tar.") {
+		return errors.New("The file must be compressed in any .tar")
+	}
 
-    path := filepath.Join(internal.FS_FOLDER_PATH, fs.FileName)
+	path := filepath.Join(internal.FS_FOLDER_PATH, fs.FileName)
 
 	file, err := os.Create(path)
 
 	defer file.Close()
-    
-    bytes, err := os.ReadFile(fs.URL)
-    if err != nil {
-        return err
-    }
 
-    err = os.WriteFile(path, bytes, 0755)
-    if err != nil {
-        return err
-    }
+	bytes, err := os.ReadFile(fs.URL)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(path, bytes, 0755)
+	if err != nil {
+		return err
+	}
 
 	if err != nil {
 		return err
 	}
 
-	database.InsertImage(fs.Name, fs.FileName, fs.URL)
+	image := models.Image{
+		Name:     fs.Name,
+		Filename: fs.FileName,
+		Path:     path,
+	}
+
+	image.InsertImage()
 
 	return nil
 }
 
 func DeleteImage(id, name, path string) {
 
-    var err error
+	var err error
 
-    if path == "" {
-        path, err = database.SearchPath(id, name)
-        if err != nil {
-            log.Fatalln(err)
-        }
-    }
+	image := models.Image{
+		ID:   id,
+		Name: name,
+		Path: path,
+	}
 
-    err = database.DelImage(id, name, path)
-    if err != nil {
-        log.Fatalln(err)
-    }
+	if image.Path == "" {
+		image.Path, err = image.SearchPath()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
 
-    fmt.Println("Image deleted from database")
+	if image.ID != "" {
+		err = image.DelImageWithId()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	} else if image.Name != "" {
+		err = image.DelImageWithName()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
 
-    err = os.Remove(path)
-    if err != nil {
-        log.Fatalln(err)
-    }
+	fmt.Println("Image deleted from database")
 
-    fmt.Println("Image deleted succesfully!")
+	err = os.Remove(filepath.Join("./", image.Path))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println("Image deleted succesfully!")
 }

@@ -9,10 +9,10 @@ import (
 )
 
 var (
-    local string
-    url string
-    imgName string
-    filename string
+	local    string
+	url      string
+	imgName  string
+	filename string
 )
 
 // newCmd represents the new command
@@ -24,76 +24,75 @@ the database.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 
-        if len(args) > 0 {
-            fmt.Println("Checking args...")
-            err := cmd.ValidateArgs(args)
-            if err != nil {
-                log.Fatalln(err)
-            }
+		if len(args) > 0 {
+			fmt.Println("Checking args...")
+			err := cmd.ValidateArgs(args)
+			if err != nil {
+				log.Fatalln(err)
+			}
 
-            for _, v := range args {
-                switch v {
-                case "ubuntu":
-                    image.UbuntuImage()
-                case "alpine":
-                    image.AlpineImage()
-                }
-            }
+			for _, v := range args {
+				switch v {
+				case "ubuntu":
+					image.UbuntuImage()
+				case "alpine":
+					image.AlpineImage()
+				}
+			}
 
-            return
-        }
+			return
+		}
 
+		if url != "" {
+			if filename == "" || imgName == "" {
+				cmd.Help()
+				log.Fatalln("error: you have the specified the filename and the image name")
+			}
 
-        if url != "" {
-            if filename == "" || imgName == "" {
-                cmd.Help()
-                log.Fatalln("error: you have the specified the filename and the image name")    
-            }
-           
-            fs := image.Filesystem{
-                URL: url,
-                FileName: filename,
-                Name: imgName,
-            }
+			fs := image.Filesystem{
+				URL:      url,
+				FileName: filename,
+				Name:     imgName,
+			}
 
-            err := fs.PullImage()
-            if err != nil {
-                log.Fatalln(err)
-            }
+			err := fs.PullImage()
+			if err != nil {
+				log.Fatalln(err)
+			}
 
-            return
-        }
+			return
+		}
 
-        if local != "" {
-            if filename == "" || imgName == "" {
-                cmd.Help()
-                log.Fatalln("error: you have the specified the filename and the image name")    
-            }
-   
-            fs := image.Filesystem{
-                URL: local,
-                FileName: filename,
-                Name: imgName,
-            }
+		if local != "" {
+			if filename == "" || imgName == "" {
+				cmd.Help()
+				log.Fatalln("error: you have the specified the filename and the image name")
+			}
 
-            err := fs.PullLocalImage()
-            if err != nil {
-                log.Fatalln(err)
-            }
+			fs := image.Filesystem{
+				URL:      local,
+				FileName: filename,
+				Name:     imgName,
+			}
 
-            return
-        }
+			err := fs.PullLocalImage()
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			return
+		}
 	},
 }
 
 func init() {
-   
-    newCmd.ValidArgs = []string{"ubuntu", "alpine"}
-    
-    newCmd.PersistentFlags().StringVarP(&url, "url", "u", "", "Indicate the image/filesystem url for download")
-    newCmd.PersistentFlags().StringVarP(&local, "local", "l", "", "Indicate the custom image/filesystem local path")
-    newCmd.PersistentFlags().StringVarP(&filename, "filename", "f", "", "Indicate the filename of the image")
-    newCmd.PersistentFlags().StringVarP(&imgName, "name", "n", "", "Indicate the name of the image")
+
+	newCmd.ValidArgs = []string{"ubuntu", "alpine"}
+
+	newCmd.PersistentFlags().StringVarP(&url, "url", "u", "", "Indicate the image/filesystem url for download")
+	newCmd.PersistentFlags().StringVarP(&local, "local", "l", "", "Indicate the custom image/filesystem local path")
+	newCmd.PersistentFlags().StringVarP(&filename, "filename", "f", "", "Indicate the filename of the image")
+	newCmd.PersistentFlags().StringVarP(&imgName, "name", "n", "", "Indicate the name of the image")
 
 	imageCmd.AddCommand(newCmd)
 }

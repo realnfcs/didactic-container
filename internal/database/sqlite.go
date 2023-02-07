@@ -2,12 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"errors"
-	"fmt"
-	"log"
-	"strings"
 
-	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -16,12 +11,6 @@ const (
 )
 
 var db *sql.DB
-
-type Image struct {
-	id       string
-	filename string
-	path     string
-}
 
 func NewSQLiteConnection() (err error) {
 
@@ -35,114 +24,44 @@ func NewSQLiteConnection() (err error) {
 	return
 }
 
-func CreateTable() {
-	createTableSQL := `
-		CREATE TABLE IF NOT EXISTS image (
-			"id" TEXT NOT NULL PRIMARY KEY,
-			"name" TEXT NOT NULL,
-			"filename" TEXT NOT NULL,
-			"path" TEXT NOT NULL
-		)
-	`
+func Query(sqlInstruction string, args ...any) (row *sql.Rows, err error) {
 
-	statement, err := db.Prepare(createTableSQL)
-	if err != nil {
-		log.Printf("error: %v\n", err)
+	if len(args) == 0 {
+		row, err = db.Query(sqlInstruction)
+		return
 	}
 
-	statement.Exec()
-	log.Println("Image table was created!")
+	row, err = db.Query(sqlInstruction, args...)
+
+	return
 }
 
-func InsertImage(name, filename, path string) {
-	insertImageSQL := `
-		INSERT INTO image (id, name, filename, path)
-		VALUES (?, ?, ?, ?)
-	`
+func QueryRow(sqlInstruction string, args ...any) (row *sql.Row) {
 
-	statement, err := db.Prepare(insertImageSQL)
-	if err != nil {
-		log.Fatalln(err)
+	if len(args) == 0 {
+		row = db.QueryRow(sqlInstruction)
+		return
 	}
 
-	id := uuid.New().String()
-	id = strings.Replace(id, "-", "", -1)
+	row = db.QueryRow(sqlInstruction, args...)
 
-	_, err = statement.Exec(id, name, filename, path)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	log.Println("Image has inserted successfully!")
+	return
 }
 
-func InfoImages() {
-	row, err := db.Query("SELECT * FROM image ORDER BY name")
+func ExecStatement(sqlInstruction string, args ...any) (err error) {
+
+	var statement *sql.Stmt
+
+	statement, err = db.Prepare(sqlInstruction)
 	if err != nil {
-		log.Fatalln(err)
+		return
 	}
 
-	defer row.Close()
+	_, err = statement.Exec(args...)
 
-	var (
-		id       string
-        name     string
-		filename string
-		path     string
-	)
-
-	for row.Next() {
-		row.Scan(&id, &name,  &filename, &path)
-        fmt.Printf("[%s] name: %s\tfilename: %s\tpath: %s\n", id, name, filename, path)
+	if err != nil {
+		return
 	}
-}
 
-func DelImage(id, name, path string) error {
-    deleleImageSQL := `
-        DELETE FROM image
-        WHERE  image.id = ? 
-            OR image.name = ?
-            OR image.path = ?
-
-    `
-    statement, err := db.Prepare(deleleImageSQL)
-    if err != nil {
-        return err
-    }
-
-    _, err = statement.Exec(id, name, path)
-    if err != nil {
-        return err
-    }
-
-    log.Println("Image has deleted successfully!")
-    return nil
-}
-
-func SearchPath(id, name string) (string, error) {
-
-    pathSearchQuerySQL := `
-        SELECT path FROM image
-        WHERE image.id == ? 
-        OR image.name == ?
-    `
-
-    row, err := db.Query(pathSearchQuerySQL, id, name) 
-    if err != nil {
-        return "", err
-    }
-
-    defer row.Close() 
-
-    var path string
-
-    for row.Next() {
-        row.Scan(&path)
-    }
-    
-    if path == "" {
-        return "", errors.New("error in scan")
-    }
-
-    return path, nil
+	return
 }
