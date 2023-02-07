@@ -79,3 +79,9 @@ Para melhor gerenciamento, usarei o SQLite para guardar informações das imagen
 - [X] Criar a conexão SQLite
 - [X] Criar as funcionalidades para instalar e configurar as Imagens/Filesystems a serem usadas
 - [X] Criar a funcionalidade para ver as imagens instaladas
+- [ ] Implementar os princípios SOLID no projeto
+- [ ] Remover o comando **./didactic-container init** e transferi-lo para a função main
+- [ ] Fazer um fluxo onde inicializamos o BD somente uma vez e passamos um endereço para uma Struct com métodos para executar estruções.
+- [ ] Melhorar o código do comando **./didactic-container new**
+- [ ] Configurar e implementar funções/métodos para receber um arquivo de configurações para as imagens.
+- [ ] Organizar a pasta **models**
