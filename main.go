@@ -10,8 +10,10 @@ import (
 )
 
 func main() {
+
 	if err := database.NewSQLiteConnection(); err != nil {
 		panic(err)
 	}
+
 	cmd.Execute()
 }

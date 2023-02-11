@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/realnfcs/didactic-container/internal/image"
 	"github.com/spf13/cobra"
 )
 
@@ -15,84 +14,69 @@ var (
 	filename string
 )
 
-// newCmd represents the new command
-var newCmd = &cobra.Command{
-	Use:   "new",
-	Short: "new command will download a image and insert in the database",
-	Long: `The new command will download the choice image and insert into
+type NewCommand struct {
+    image imageEngineInterface
+    cmd *cobra.Command
+}
+
+func (n *NewCommand) New() *NewCommand {
+    return &NewCommand{
+        // TODO: imageController packager to manager image engine
+        image: imageController.GetImageEngine(),
+        cmd: &cobra.Command{
+        	Use:   "new",
+        	Short: "new command will download a image and insert in the database",
+        	Long: `The new command will download the choice image and insert into
 the database.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+            // TODO: function return a slice of strings containing the filesystem available
+            ValidArgs: n.image.Filesystem(),
+        	Run: func(cmd *cobra.Command, args []string) {
+    
+            	if len(args) > 0 {
+    
+        	    	fmt.Println("Checking args...")
+            		err := cmd.ValidateArgs(args)
 
-		if len(args) > 0 {
-			fmt.Println("Checking args...")
-			err := cmd.ValidateArgs(args)
-			if err != nil {
-				log.Fatalln(err)
-			}
+        	    	if err != nil {
+        		    	log.Fatalln(err)
+            		}
+                }
+            
+               // This part will call the image engine interface and download the fs
+                if local != "" {
+                    err := n.image.GetLocalImage(local, imgName, filename, args...)
+                    if err != nil {
+                        log.Fatalln(err)
+                    }
 
-			for _, v := range args {
-				switch v {
-				case "ubuntu":
-					image.UbuntuImage()
-				case "alpine":
-					image.AlpineImage()
-				}
-			}
+                    return
+                }
 
-			return
-		}
+                if url != "" {
+                    err := n.image.DownloadImage(args...)
+                    if err != nil {
+                        log.Fatalln(err)
+                    }
 
-		if url != "" {
-			if filename == "" || imgName == "" {
-				cmd.Help()
-				log.Fatalln("error: you have the specified the filename and the image name")
-			}
+                    return
+                }
 
-			fs := image.Filesystem{
-				URL:      url,
-				FileName: filename,
-				Name:     imgName,
-			}
+                fmt.Println("error: null flags")
 
-			err := fs.PullImage()
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			return
-		}
-
-		if local != "" {
-			if filename == "" || imgName == "" {
-				cmd.Help()
-				log.Fatalln("error: you have the specified the filename and the image name")
-			}
-
-			fs := image.Filesystem{
-				URL:      local,
-				FileName: filename,
-				Name:     imgName,
-			}
-
-			err := fs.PullLocalImage()
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			return
-		}
-	},
+            },
+	    },
+    }
 }
 
 func init() {
 
-	newCmd.ValidArgs = []string{"ubuntu", "alpine"}
+    new := new(NewCommand).New()
 
-	newCmd.PersistentFlags().StringVarP(&url, "url", "u", "", "Indicate the image/filesystem url for download")
-	newCmd.PersistentFlags().StringVarP(&local, "local", "l", "", "Indicate the custom image/filesystem local path")
-	newCmd.PersistentFlags().StringVarP(&filename, "filename", "f", "", "Indicate the filename of the image")
-	newCmd.PersistentFlags().StringVarP(&imgName, "name", "n", "", "Indicate the name of the image")
+	new.cmd.PersistentFlags().StringVarP(&url, "url", "u", "", "Indicate the image/filesystem url for download")
+	new.cmd.PersistentFlags().StringVarP(&local, "local", "l", "", "Indicate the custom image/filesystem local path")
+	new.cmd.PersistentFlags().StringVarP(&filename, "filename", "f", "", "Indicate the filename of the image")
+	new.cmd.PersistentFlags().StringVarP(&imgName, "name", "n", "", "Indicate the name of the image")
 
-	imageCmd.AddCommand(newCmd)
+	imageCmd.AddCommand(new.cmd)
 }
