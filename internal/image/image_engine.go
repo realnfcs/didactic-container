@@ -45,6 +45,11 @@ func UbuntuImage() {
 	}
 }
 
+// TODO: Create these functions to download a external image or
+//       a local image from user
+func (fs *Filesystem) DownloadImage(images ...string) error
+func (*Filesystem) GetLocalImage(local, imgName, filename string, args ...string) error
+
 // Function to download a image with the URL informed
 func (fs *Filesystem) PullImage() error {
 
@@ -125,7 +130,7 @@ func (fs *Filesystem) PullLocalImage() error {
 	return nil
 }
 
-func DeleteImage(id, name, path string) {
+func (*Filesystem) DeleteImage(id, name, path string) {
 
 	var err error
 
