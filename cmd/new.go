@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/realnfcs/didactic-container/internal/dependencies"
+	"github.com/realnfcs/didactic-container/internal/interfaces"
 	"github.com/spf13/cobra"
 )
 
@@ -15,14 +17,13 @@ var (
 )
 
 type NewCommand struct {
-    image imageEngineInterface
+    image interfaces.ImageInterface
     cmd *cobra.Command
 }
 
 func (n *NewCommand) New() *NewCommand {
     return &NewCommand{
-        // TODO: imageController packager to manager image engine
-        image: imageController.GetImageEngine(),
+        image: dependencies.GetImageEngine(),
         cmd: &cobra.Command{
         	Use:   "new",
         	Short: "new command will download a image and insert in the database",
@@ -30,7 +31,7 @@ func (n *NewCommand) New() *NewCommand {
 the database.
 `,
             // TODO: function return a slice of strings containing the filesystem available
-            ValidArgs: n.image.Filesystem(),
+            // ValidArgs: n.image.Filesystem(),
         	Run: func(cmd *cobra.Command, args []string) {
     
             	if len(args) > 0 {
@@ -73,6 +74,7 @@ func init() {
 
     new := new(NewCommand).New()
 
+    // Flags to get the local image from user
 	new.cmd.PersistentFlags().StringVarP(&url, "url", "u", "", "Indicate the image/filesystem url for download")
 	new.cmd.PersistentFlags().StringVarP(&local, "local", "l", "", "Indicate the custom image/filesystem local path")
 	new.cmd.PersistentFlags().StringVarP(&filename, "filename", "f", "", "Indicate the filename of the image")

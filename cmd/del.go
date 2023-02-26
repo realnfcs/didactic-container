@@ -23,7 +23,7 @@ or path of the image.
     `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if id != "" || name != "" {
-			image.DeleteImage(id, name, path)
+			new(image.Filesystem).DeleteImage(id, name, path)
 		} else {
 			fmt.Println("value error: you have to pass a value with flags")
 			cmd.Help()
